@@ -194,11 +194,14 @@ plot(fit)
 plot(fit, cr_bands = TRUE)
 
 ## ----Bootstrap----------------------------------------------------------------
-getBootstrapQuantiles(
+bs_sample <- getBootstrapSamples(
   model_fits = fit,
-  quantiles  = c(0.025, 0.5, 0.975),
   doses      = c(0, 2.5, 4, 5, 7, 10),
   n_samples  = 6)
+
+getBootstrapQuantiles(
+  bs_sample = bs_sample,
+  quantiles = c(0.025, 0.5, 0.975))
 
 ## ----eval = FALSE-------------------------------------------------------------
 #  performBayesianMCPMod(
