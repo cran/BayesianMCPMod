@@ -16,10 +16,10 @@ performBayesianMCPMod(posterior_list, contr, crit_prob_adj, simple = FALSE)
 \item{simple}{Boolean variable, defining whether simplified fit will be applied. Passed to the getModelFits() function. Default FALSE.}
 }
 \value{
-Bayesian MCP test result as well as modelling result.
+Bayesian MCP test result as well as modeling result.
 }
 \description{
-Performs Bayesian MCP Test step and modeling in a combined fashion. See performBayesianMCP() function for MCP Test step and getModelFits() for the modelling step
+Performs Bayesian MCP Test step and modeling in a combined fashion. See performBayesianMCP() function for MCP Test step and getModelFits() for the modeling step
 }
 \examples{
 mods <- DoseFinding::Mods(linear      = NULL,
@@ -40,15 +40,15 @@ critVal <- getCritProb(
   alpha_crit_val = 0.05)
 prior_list <- list(Ctrl = RBesT::mixnorm(comp1 = c(w = 1, m = 0, s = 5), sigma = 2),
                    DG_1 = RBesT::mixnorm(comp1 = c(w = 1, m = 1, s = 12), sigma = 2),
-                   DG_2 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.2, s = 11), sigma = 2) ,  
+                   DG_2 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.2, s = 11), sigma = 2) ,
                    DG_3 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.3, s = 11), sigma = 2) ,
                    DG_4 = RBesT::mixnorm(comp1 = c(w = 1, m = 2, s = 13), sigma = 2))
 mu <- c(0, 1, 1.5, 2, 2.5)
-se <- c(5, 4, 6, 7, 8)
+S_hat <- c(5, 4, 6, 7, 8)
 posterior_list <- getPosterior(
   prior_list = prior_list,
   mu_hat     = mu,
-  se_hat     = se)
+  S_hat     = S_hat)
 performBayesianMCPMod(posterior_list = posterior_list,
                       contr          = contr_mat,
                       crit_prob_adj  = critVal,

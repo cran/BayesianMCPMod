@@ -1,15 +1,74 @@
-## ----include = FALSE----------------------------------------------------------
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-
-## ----setup--------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 library(BayesianMCPMod)
+library(RBesT)
 library(clinDR)
 library(dplyr)
+library(tibble)
+library(reactable)
 
 set.seed(7015)
+
+#' Display Parameters Table
+#'
+#' This function generates a markdown table displaying the names and values of parameters
+#' from a named list.
+#'
+#' @param named_list A named list where each name represents a parameter name and the list
+#'   element represents the parameter value. Date values in the list are automatically
+#'   converted to character strings for display purposes.
+#'
+#' @return Prints a markdown table with two columns: "Parameter Name" and "Parameter Values".
+#'   The function does not return a value but displays the table directly to the output.
+#'
+#' @importFrom knitr kable
+#' @examples
+#' params <- list("Start Date" = as.Date("2020-01-01"),
+#'                "End Date" = as.Date("2020-12-31"),
+#'                "Threshold" = 10)
+#' display_params_table(params)
+#'
+#' @export
+display_params_table <- function(named_list) {
+  display_table <- data.frame()
+  value_names <- data.frame()
+  for (i in 1:length(named_list)) {
+    # dates will display as numeric by default, so convert to char first
+    if (class(named_list[[i]]) == "Date") {
+      named_list[[i]] = as.character(named_list[[i]])
+    }
+    if (!is.null(names(named_list[[i]]))) {
+      value_names <- rbind(value_names, paste(names(named_list[[i]]), collapse = ', '))
+    }
+    values <- data.frame(I(list(named_list[[i]])))
+    display_table <- rbind(display_table, values)
+  }
+  
+  round_numeric <- function(x, digits = 3) {
+    if (is.numeric(x)) {
+      return(round(x, digits))
+    } else {
+      return(x)
+    }
+  }
+  
+  display_table[1] <- lapply(display_table[1], function(sublist) {
+    lapply(sublist, round_numeric)
+  })
+  
+  class(display_table[[1]]) <- "list"
+  
+  if (nrow(value_names) == 0) {
+    knitr::kable(
+      cbind(names(named_list), display_table),
+      col.names = c("Name", "Value")
+    )
+  } else {
+    knitr::kable(
+      cbind(names(named_list), value_names, display_table),
+      col.names = c("Name", "Value Labels", "Value")
+    )
+  }
+}
 
 ## ----Historical Data for Control Arm------------------------------------------
 data("metaData")
@@ -91,122 +150,160 @@ prior_list  <- getPriorList(
 
 getESS(prior_list)
 
-## ----Pre-Specification of candidate models------------------------------------
+## -----------------------------------------------------------------------------
+# Guesstimate estimation
 exp_guesst  <- DoseFinding::guesst(
-  d     = 5,
-  p     = c(0.2),
-  model = "exponential",
-  Maxd  = max(dose_levels))
-
+  model = "exponential", 
+  d = 5, p = 0.2, Maxd = max(dose_levels)
+)
 emax_guesst <- DoseFinding::guesst(
-  d     = 2.5,
-  p     = c(0.9),
-  model = "emax")
+  model = "emax",
+  d = 2.5, p = 0.9
+)
+sigEmax_guesst <- DoseFinding::guesst(
+  model = "sigEmax",
+  d = c(2.5, 5), p = c(0.5, 0.95)
+)
+logistic_guesst <- DoseFinding::guesst(
+  model = "logistic",
+  d = c(5, 10), p = c(0.1, 0.85)
+)
 
+## -----------------------------------------------------------------------------
+betaMod_params <- c(delta1 = 1, delta2 = 1)
+quadratic_params <- c(delta2 = -0.1)
+
+## -----------------------------------------------------------------------------
 mods <- DoseFinding::Mods(
   linear      = NULL,
-  emax        = emax_guesst,
+  # guesstimate scale
   exponential = exp_guesst,
+  emax        = emax_guesst,
+  sigEmax     = sigEmax_guesst,
+  logistic    = logistic_guesst,
+  # parameter scale
+  betaMod     = betaMod_params,
+  quadratic   = quadratic_params,
+  # Options for all models
   doses       = dose_levels,
   maxEff      = -1,
-  placEff     = -12.8)
+  placEff     = -12.8
+)
 
-## ----new trial----------------------------------------------------------------
-new_trial  <- filter(
-  dataset,
-  primtime   == 8,
+plot(mods)
+
+## -----------------------------------------------------------------------------
+display_params_table(mods)
+
+## -----------------------------------------------------------------------------
+knitr::kable(DoseFinding::getResp(mods, doses = dose_levels))
+
+## -----------------------------------------------------------------------------
+data("metaData")
+
+trial_data <- dplyr::filter(
+  dplyr::filter(tibble::tibble(metaData), bname == "BRINTELLIX"),
+  primtime == 8,
   indication == "MAJOR DEPRESSIVE DISORDER",
-  protid     == 5)
+  protid == 5
+)
 
 n_patients <- c(128, 124, 129, 122)
 
-## ----Trial results------------------------------------------------------------
+## -----------------------------------------------------------------------------
 posterior <- getPosterior(
-  prior    = prior_list,
-  mu_hat   = new_trial$rslt,
-  se_hat   = new_trial$se,
-  calc_ess = TRUE)
+  prior_list = prior_list,
+  mu_hat = trial_data$rslt,
+  S_hat = trial_data$se,
+  calc_ess = TRUE
+)
 
-summary(posterior)
+knitr::kable(summary(posterior))
 
-## ----Preparation of input for Bayesian MCPMod Test step-----------------------
+## -----------------------------------------------------------------------------
 crit_pval <- getCritProb(
   mods           = mods,
   dose_levels    = dose_levels,
-  se_new_trial   = new_trial$se,
-  alpha_crit_val = 0.05)
+  se_new_trial   = trial_data$se,
+  alpha_crit_val = 0.05
+)
 
 contr_mat <- getContr(
   mods         = mods,
   dose_levels  = dose_levels,
-  sd_posterior = summary(posterior)[, 2])
+  sd_posterior = summary(posterior)[, 2]
+)
 
-## ----eval = FALSE-------------------------------------------------------------
-#  # i) the frequentist contrast
-#  contr_mat_prior <- getContr(
-#    mods           = mods,
-#    dose_levels    = dose_levels,
-#    dose_weights   = n_patients,
-#    prior_list     = prior_list)
-#  # ii) re-estimated frequentist contrasts
-#  contr_mat_prior <- getContr(
-#    mods           = mods,
-#    dose_levels    = dose_levels,
-#    se_new_trial   = new_trial$se)
-#  # iii)  Bayesian approach using number of patients for new trial and prior distribution
-#  contr_mat_prior <- getContr(
-#    mods           = mods,
-#    dose_levels    = dose_levels,
-#    dose_weights   = n_patients,
-#    prior_list     = prior_list)
+## -----------------------------------------------------------------------------
+# # i) the frequentist contrast
+# contr_mat_prior <- getContr(
+#   mods           = mods,
+#   dose_levels    = dose_levels,
+#   dose_weights   = n_patients,
+#   prior_list     = prior_list)
+# # ii) re-estimated frequentist contrasts
+# contr_mat_prior <- getContr(
+#   mods           = mods,
+#   dose_levels    = dose_levels,
+#   se_new_trial   = trial_data$se)
+# # iii)  Bayesian approach using number of patients for new trial and prior distribution
+# contr_mat_prior <- getContr(
+#   mods           = mods,
+#   dose_levels    = dose_levels,
+#   dose_weights   = n_patients,
+#   prior_list     = prior_list)
 
-## ----Execution of Bayesian MCPMod Test step-----------------------------------
+## -----------------------------------------------------------------------------
 BMCP_result <- performBayesianMCP(
   posterior_list = posterior,
   contr          = contr_mat, 
   crit_prob_adj  = crit_pval)
 
+## -----------------------------------------------------------------------------
 BMCP_result
 
-## ----Model fitting------------------------------------------------------------
-# Option a) Simplified approach by using approximated posterior distribution
-fit_simple <- getModelFits(
-  models      = names(mods),
-  dose_levels = dose_levels,
-  posterior   = posterior,
-  simple      = TRUE)
-
-# Option b) Making use of the complete posterior distribution
+## -----------------------------------------------------------------------------
+# If simple = TRUE, uses approx posterior
+# Here we use complete posterior distribution
 fit <- getModelFits(
-  models      = names(mods),
+  models      = mods,
   dose_levels = dose_levels,
   posterior   = posterior,
   simple      = FALSE)
 
-## ----Predict------------------------------------------------------------------
-predict(fit, doses = c(0, 2.5, 4, 5, 7, 10))
+## -----------------------------------------------------------------------------
+display_params_table(stats::predict(fit, doses = c(0, 2.5, 4, 5, 7, 10)))
 
-## ----Plot simple vs fit-------------------------------------------------------
-plot(fit_simple)
+## -----------------------------------------------------------------------------
 plot(fit)
 
-## ----Plot with bootstrap------------------------------------------------------
+## -----------------------------------------------------------------------------
 plot(fit, cr_bands = TRUE)
 
-## ----Bootstrap----------------------------------------------------------------
-bs_sample <- getBootstrapSamples(
+## -----------------------------------------------------------------------------
+bootstrap_quantiles <- getBootstrapQuantiles(
   model_fits = fit,
+  quantiles  = c(0.025, 0.5, 0.975),
   doses      = c(0, 2.5, 4, 5, 7, 10),
-  n_samples  = 6)
+  n_samples  = 6
+)
 
-getBootstrapQuantiles(
-  bs_sample = bs_sample,
-  quantiles = c(0.025, 0.5, 0.975))
+## -----------------------------------------------------------------------------
+reactable::reactable(
+  data = bootstrap_quantiles,
+  groupBy = "models",
+  columns = list(
+    doses = colDef(aggregate = "count", format = list(aggregated = colFormat(suffix = " doses"))),
+    "2.5%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
+    "50%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
+    "97.5%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4)))
+  )
+)
 
-## ----eval = FALSE-------------------------------------------------------------
-#  performBayesianMCPMod(
-#        posterior_list   = posterior,
-#        contr            = contr_mat,
-#        crit_prob_adj    = crit_pval,
-#        simple           = FALSE)
+## -----------------------------------------------------------------------------
+# performBayesianMCPMod(
+#   posterior_list   = posterior,
+#   contr            = contr_mat,
+#   crit_prob_adj    = crit_pval,
+#   simple           = FALSE)
 

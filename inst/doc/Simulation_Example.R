@@ -4,7 +4,8 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----setup--------------------------------------------------------------------
+## -----------------------------------------------------------------------------
+
 library(BayesianMCPMod)
 library(clinDR)
 library(dplyr)
@@ -27,12 +28,12 @@ hist_data <- data.frame(
 sd_tot <- with(hist_data, sum(sd * n) / sum(n))
 
 ## ----Setting Prior without execution, eval = FALSE----------------------------
-#  dose_levels <- c(0, 2.5, 5, 10, 20)
-#  
-#  prior_list  <- getPriorList(
-#    hist_data     = hist_data,
-#    dose_levels   = dose_levels,
-#    robust_weight = 0.3)
+# dose_levels <- c(0, 2.5, 5, 10, 20)
+# 
+# prior_list  <- getPriorList(
+#   hist_data     = hist_data,
+#   dose_levels   = dose_levels,
+#   robust_weight = 0.3)
 
 ## ----Setting Prior, echo = FALSE----------------------------------------------
 dose_levels <- c(0, 2.5, 5, 10, 20)

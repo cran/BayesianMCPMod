@@ -2,8 +2,7 @@
 % Please edit documentation in R/BMCPMod.R
 \name{assessDesign}
 \alias{assessDesign}
-\title{assessDesign
-.}
+\title{assessDesign}
 \usage{
 assessDesign(
   n_patients,
@@ -12,6 +11,7 @@ assessDesign(
   sd,
   n_sim = 1000,
   alpha_crit_val = 0.05,
+  modeling = FALSE,
   simple = TRUE,
   reestimate = FALSE,
   contr = NULL,
@@ -19,7 +19,7 @@ assessDesign(
 )
 }
 \arguments{
-\item{n_patients}{Vector specifying the planned number of patients per dose group}
+\item{n_patients}{Vector specifying the planned number of patients per dose group. A minimum of 2 patients are required in each group.}
 
 \item{mods}{An object of class "Mods" as specified in the DoseFinding package.}
 
@@ -30,6 +30,8 @@ assessDesign(
 \item{n_sim}{Number of simulations to be performed}
 
 \item{alpha_crit_val}{(Un-adjusted) Critical value to be used for the MCP testing step. Passed to the getCritProb() function for the calculation of adjusted critical values (on the probability scale). Default is 0.05.}
+
+\item{modeling}{Boolean variable defining whether the Mod part of Bayesian MCP-Mod will be performed in the assessment. More heavy on resources. Default FALSE.}
 
 \item{simple}{Boolean variable defining whether simplified fit will be applied. Passed to the getModelFits function. Default FALSE.}
 
@@ -57,7 +59,7 @@ mods <- DoseFinding::Mods(linear      = NULL,
 sd <- 12
 prior_list <- list(Ctrl = RBesT::mixnorm(comp1 = c(w = 1, m = 0, s = 12), sigma = 2),
                    DG_1 = RBesT::mixnorm(comp1 = c(w = 1, m = 1, s = 12), sigma = 2),
-                   DG_2 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.2, s = 11), sigma = 2) ,  
+                   DG_2 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.2, s = 11), sigma = 2) ,
                    DG_3 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.3, s = 11), sigma = 2) ,
                    DG_4 = RBesT::mixnorm(comp1 = c(w = 1, m = 2, s = 13), sigma = 2))
 n_patients <- c(40, 60, 60, 60, 60)
