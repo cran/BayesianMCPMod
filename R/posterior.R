@@ -13,6 +13,7 @@
 #' @param calc_ess boolean variable, indicating whether effective sample size should be calculated. Default FALSE
 #' @references BERNARDO, Jl. M., and Smith, AFM (1994). Bayesian Theory. 81.
 #' @return posterior_list, a posterior list object is returned with information about (mixture) posterior distribution per dose group (more detailed information about the conjugate posterior in case of covariance input for S_hat is provided in the attributes)
+#' @details Kindly note that one can sample from the `posterior_list` with `lapply(posterior_list, RBesT::rmix, n = 10)`.
 #' @examples
 #' prior_list <- list(Ctrl = RBesT::mixnorm(comp1 = c(w = 1, m = 0, s = 5), sigma = 2),
 #'                    DG_1 = RBesT::mixnorm(comp1 = c(w = 1, m = 1, s = 12), sigma = 2),
@@ -47,11 +48,11 @@ getPosterior <- function(
   checkmate::check_vector(S_hat, any.missing = FALSE, null.ok = TRUE)
   checkmate::check_double(S_hat, null.ok = TRUE, lower = 0, upper = Inf)
   
-  is_matrix_S_hat <- FALSE
-  
   stopifnot("prior_list must be an object of RBesT package" =
-              all(sapply(prior_list, function(x) methods::is(x, "normMix") |
-                           methods::is(x, "betaMix") | methods::is(x, "mix"))))
+              all(sapply(prior_list, function(x)
+                methods::is(x, "normMix") |
+                  methods::is(x, "betaMix") |
+                  methods::is(x, "mix"))))
 
   if (!is.null(mu_hat) && !is.null(S_hat) && is.null(data)) {
     
@@ -89,7 +90,7 @@ getPosterior <- function(
         prior_list     = prior_list,
         calc_ess       = calc_ess)
       
-    } else if (!is_matrix_S_hat) {
+    } else {
       
       posterior_list <- getPosteriorI(
         prior_list = prior_list,

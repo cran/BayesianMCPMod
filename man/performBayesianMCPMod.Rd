@@ -4,7 +4,17 @@
 \alias{performBayesianMCPMod}
 \title{performBayesianMCPMod}
 \usage{
-performBayesianMCPMod(posterior_list, contr, crit_prob_adj, simple = FALSE)
+performBayesianMCPMod(
+  posterior_list,
+  contr,
+  crit_prob_adj,
+  simple = FALSE,
+  avg_fit = TRUE,
+  delta = NULL,
+  evidence_level = NULL,
+  med_selection = c("avgFit", "bestFit"),
+  n_samples = 1000
+)
 }
 \arguments{
 \item{posterior_list}{An object of class 'postList' as created by getPosterior() containing information about the (mixture) posterior distribution per dose group}
@@ -14,6 +24,16 @@ performBayesianMCPMod(posterior_list, contr, crit_prob_adj, simple = FALSE)
 \item{crit_prob_adj}{A getCritProb object, specifying the critical value to be used for the testing (on the probability scale).}
 
 \item{simple}{Boolean variable, defining whether simplified fit will be applied. Passed to the getModelFits() function. Default FALSE.}
+
+\item{avg_fit}{Boolean variable, defining whether an average fit (based on generalized AIC weights) should be performed in addition to the individual models. Default TRUE.}
+
+\item{delta}{A numeric value for the threshold Delta for the MED assessment. If NULL, no MED assessment is performed. Default NULL.}
+
+\item{evidence_level}{A numeric value between 0 and 1 for the evidence level gamma for the MED assessment. Only required for Bayesian MED assessment, see ?getMED for details. Default NULL.}
+
+\item{med_selection}{A string, either "avgFit" or "bestFit" based on the lowest gAIC, for the method of MED selection. Default "avgFit".}
+
+\item{n_samples}{A numerical for the number of bootstrapped samples in case the Bayesian MED assessment is performed. Default 1e3.}
 }
 \value{
 Bayesian MCP test result as well as modeling result.
@@ -23,7 +43,6 @@ Performs Bayesian MCP Test step and modeling in a combined fashion. See performB
 }
 \examples{
 mods <- DoseFinding::Mods(linear      = NULL,
-                          linlog      = NULL,
                           emax        = c(0.5, 1.2),
                           exponential = 2,
                           doses       = c(0, 0.5, 2,4, 8))
@@ -37,7 +56,7 @@ critVal <- getCritProb(
   mods           = mods,
   dose_weights   = c(50, 50, 50, 50, 50), #reflecting the planned sample size
   dose_levels    = dose_levels,
-  alpha_crit_val = 0.05)
+  alpha_crit_val = 0.6) # unreasonable alpha for this example, rather choose 0.05
 prior_list <- list(Ctrl = RBesT::mixnorm(comp1 = c(w = 1, m = 0, s = 5), sigma = 2),
                    DG_1 = RBesT::mixnorm(comp1 = c(w = 1, m = 1, s = 12), sigma = 2),
                    DG_2 = RBesT::mixnorm(comp1 = c(w = 1, m = 1.2, s = 11), sigma = 2) ,
@@ -48,10 +67,13 @@ S_hat <- c(5, 4, 6, 7, 8)
 posterior_list <- getPosterior(
   prior_list = prior_list,
   mu_hat     = mu,
-  S_hat     = S_hat)
+  S_hat      = S_hat,
+  calc_ess   = TRUE)
+                      
 performBayesianMCPMod(posterior_list = posterior_list,
                       contr          = contr_mat,
                       crit_prob_adj  = critVal,
-                      simple         = FALSE)
+                      simple         = FALSE,
+                      delta          = 1)
 
 }

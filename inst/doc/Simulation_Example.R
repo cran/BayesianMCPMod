@@ -4,13 +4,16 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## -----------------------------------------------------------------------------
+## ----setup, collapse = TRUE---------------------------------------------------
 
 library(BayesianMCPMod)
 library(clinDR)
 library(dplyr)
 
 set.seed(7015)
+
+## ----eval = FALSE-------------------------------------------------------------
+# future::plan(future::multisession)
 
 ## ----Historical Data----------------------------------------------------------
 data("metaData")
@@ -123,4 +126,14 @@ success_probabilities <- assessDesign(
   dr_means    = c(-12, -14, -15, -16, -17),
   n_sim       = 100) # speed up example run-time
 success_probabilities
+
+## -----------------------------------------------------------------------------
+success_probabilities_med <- assessDesign(
+  n_patients  = c(60, 80, 80, 80, 80),
+  mods        = mods,
+  prior_list  = prior_list,
+  sd          = sd_tot,
+  delta       = 2,
+  n_sim       = 100) # speed up example run-time
+success_probabilities_med
 

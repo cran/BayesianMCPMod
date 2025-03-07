@@ -361,16 +361,21 @@ library(dplyr)
 
 set.seed(7015)</code></pre>
 <div id="background-and-data" class="section level1">
-<h1>Background and data</h1>
-<p>In this vignette, we will show the use of the Bayesian MCPMod package
-for trial planning for continuous distributed data. As in <a href="analysis_normal.html">the analysis example vignette</a>, we focus
-on the indication MDD and make use of historical data that is included
-in the clinDR package. More specifically, trial results for BRINTELLIX
-will be utilized to establish an informative prior for the control
-group.</p>
+<h1>Background and Data</h1>
+<p>In this vignette, we will show the use of the
+<code>BayesianMCPMod</code> R package for trial planning for
+continuously distributed data. As in the <a href="analysis_normal.html">analysis example vignette</a>, we focus on
+the indication MDD and make use of historical data that is included in
+the clinDR package. More specifically, trial results for BRINTELLIX will
+be utilized to establish an informative prior for the control group.</p>
+<p>A more general overview of the R package was provided with a <a href="https://github.com/Boehringer-Ingelheim/BayesianMCPMod/blob/36763ee5325955ca5d76a6c140ea3881c74e5fda/inst/PSI_Poster_2024.pdf">poster</a>
+presented during the PSI 2024 Conference.</p>
+<p>This package makes use of the <a href="https://cran.r-project.org/package=future">future</a> framework
+for parallel processing, which can be set up as follows:</p>
+<pre class="r"><code>future::plan(future::multisession)</code></pre>
 </div>
 <div id="calculation-of-a-map-prior" class="section level1">
-<h1>Calculation of a MAP prior</h1>
+<h1>Calculation of a MAP Prior</h1>
 <p>In a first step, a meta analytic predictive prior will be calculated
 using historical data from 5 trials with main endpoint Change from
 baseline in MADRS score after 8 weeks. Please note that only information
@@ -390,8 +395,9 @@ hist_data &lt;- data.frame(
   n     = histcontrol$sampsize)
 
 sd_tot &lt;- with(hist_data, sum(sd * n) / sum(n))</code></pre>
-<p>We will make use of the same getPriorList() function as in the <a href="analysis_normal.html">analysis example vignette</a> to create a
-MAP prior.</p>
+<p>We will make use of the same <code>getPriorList()</code> function as
+in the <a href="analysis_normal.html">analysis example vignette</a> to
+create a MAP prior.</p>
 <pre class="r"><code>dose_levels &lt;- c(0, 2.5, 5, 10, 20)
 
 prior_list  &lt;- getPriorList(
@@ -399,8 +405,8 @@ prior_list  &lt;- getPriorList(
   dose_levels   = dose_levels,
   robust_weight = 0.3)</code></pre>
 </div>
-<div id="specification-of-new-trial-design" class="section level1">
-<h1>Specification of new trial design</h1>
+<div id="specification-of-the-new-trial-design" class="section level1">
+<h1>Specification of the New Trial Design</h1>
 <p>For the hypothetical new trial, we plan with 4 active dose levels and
 we specify a broad set of potential dose-response relationships,
 including a linear, an exponential, an emax and 2 sigEMAX models.<br />
@@ -440,8 +446,8 @@ mods &lt;- DoseFinding::Mods(
 
 n_patients &lt;- c(60, 80, 80, 80, 80)</code></pre>
 </div>
-<div id="calculation-of-success-probabilities" class="section level1">
-<h1>Calculation of success probabilities</h1>
+<div id="calculation-of-the-success-probabilities" class="section level1">
+<h1>Calculation of the Success Probabilities</h1>
 <p>To calculate success probabilities for the different assumed
 dose-response models and the specified trial design we will apply the
 assessDesign function. For illustration purposes, the number of
@@ -456,43 +462,38 @@ simulated trial results is reduced to 100 in this example.</p>
 success_probabilities
 #&gt; $linear
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.68 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.59        0.21        0.59        0.48        0.36 
+#&gt;   Estimated Success Rate: 0.68 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.59  0.21  0.59  0.48  0.36 
 #&gt; 
 #&gt; $emax
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.82 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.26        0.78        0.23        0.36        0.65 
+#&gt;   Estimated Success Rate: 0.82 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.26  0.78  0.23  0.36  0.65 
 #&gt; 
 #&gt; $exponential
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.63 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.61        0.16        0.60        0.42        0.30 
+#&gt;   Estimated Success Rate: 0.63 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.61  0.16  0.60  0.42  0.30 
 #&gt; 
 #&gt; $sigEmax1
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.82 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.63        0.52        0.58        0.73        0.76 
+#&gt;   Estimated Success Rate: 0.82 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.63  0.52  0.58  0.73  0.76 
 #&gt; 
 #&gt; $sigEmax2
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.84 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.43        0.73        0.37        0.61        0.77 
+#&gt;   Estimated Success Rate: 0.84 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.43  0.73  0.37  0.61  0.77 
 #&gt; 
 #&gt; attr(,&quot;avgSuccessRate&quot;)
 #&gt; [1] 0.758
@@ -517,43 +518,38 @@ control.</p>
 success_probabilities_uneq
 #&gt; $linear
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.8 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.76        0.50        0.75        0.65        0.61 
+#&gt;   Estimated Success Rate: 0.8 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.76  0.50  0.75  0.65  0.61 
 #&gt; 
 #&gt; $emax
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.84 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.39        0.83        0.34        0.59        0.76 
+#&gt;   Estimated Success Rate: 0.84 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.39  0.83  0.34  0.59  0.76 
 #&gt; 
 #&gt; $exponential
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.81 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.76        0.48        0.76        0.64        0.59 
+#&gt;   Estimated Success Rate: 0.81 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.76  0.48  0.76  0.64  0.59 
 #&gt; 
 #&gt; $sigEmax1
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.87 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.73        0.66        0.71        0.84        0.80 
+#&gt;   Estimated Success Rate: 0.87 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.73  0.66  0.71  0.84  0.80 
 #&gt; 
 #&gt; $sigEmax2
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.86 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.58        0.79        0.52        0.75        0.81 
+#&gt;   Estimated Success Rate: 0.86 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.58  0.79  0.52  0.75  0.81 
 #&gt; 
 #&gt; attr(,&quot;avgSuccessRate&quot;)
 #&gt; [1] 0.836
@@ -569,7 +565,7 @@ success_probabilities_uneq
 <p>For this specific trial setting the adapted allocation ratio leads to
 increased success probabilities under all assumed dose response
 relationships.</p>
-<p>Instead of specifying the assumed effects via the models it is also
+<p>Instead of specifying the assumed effects via the models, it is also
 possible to directly specify the effects for the individual dose levels
 via the dr_means input. This allows e.g. also the simulation of
 scenarios with a prior-data conflict.</p>
@@ -583,11 +579,10 @@ scenarios with a prior-data conflict.</p>
 success_probabilities
 #&gt; $dose_resp
 #&gt; Bayesian Multiple Comparison Procedure
-#&gt;   Estimated Success Rate:  0.99 
-#&gt;   N Simulations:           100
-#&gt; Model Significance Frequencies
-#&gt;      linear        emax exponential    sigEmax1    sigEmax2 
-#&gt;        0.90        0.89        0.88        0.88        0.91 
+#&gt;   Estimated Success Rate: 0.99 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.90  0.89  0.88  0.88  0.91 
 #&gt; 
 #&gt; attr(,&quot;avgSuccessRate&quot;)
 #&gt; [1] 0.99
@@ -595,6 +590,114 @@ success_probabilities
 #&gt; [1] -12
 #&gt; attr(,&quot;maxEff&quot;)
 #&gt; [1] 5
+#&gt; attr(,&quot;sampleSize&quot;)
+#&gt; [1] 60 80 80 80 80
+#&gt; attr(,&quot;priorESS&quot;)
+#&gt;  Ctr DG_1 DG_2 DG_3 DG_4 
+#&gt; 20.6  1.0  1.0  1.0  1.0</code></pre>
+</div>
+<div id="assessment-of-the-minimally-efficacious-dose" class="section level1">
+<h1>Assessment of the Minimally Efficacious Dose</h1>
+<p>The assessment of the Minimally Efficacious Dose (MED) is integrated
+in the <code>assessDesign()</code> function via the arguments
+<code>delta</code> and <code>evidence_level</code>. If only the argument
+<code>delta</code> is provided, the estimated model shapes will be used
+to assess the MED. If both the arguments <code>delta</code> and
+<code>evidence_level</code> are provided, a Bayesian decision rule of
+the form <span class="math display">\[\widehat{\text{MED}} = \text{arg
+min}_{d\in\{d_1, \dots, d_k\}} \left\{ \text{Pr}\left(f(d, \hat\theta) -
+f(d_1, \hat\theta) &gt; \Delta\right) &gt; \gamma \right\}\]</span> will
+be applied, see also <code>?getMED()</code>. The computational cost for
+the Bayesian decision rule within the <code>assessDesign()</code>
+function is rather high depending on the number of simulated trial
+outcomes, as the required quantiles need to be bootstrapped for each
+true model shape and each simulated outcome. Thus, using the Bayesian
+decision rule when assessing the trial’s design is only recommended when
+using parallel computing.</p>
+<pre class="r"><code>success_probabilities_med &lt;- assessDesign(
+  n_patients  = c(60, 80, 80, 80, 80),
+  mods        = mods,
+  prior_list  = prior_list,
+  sd          = sd_tot,
+  delta       = 2,
+  n_sim       = 100) # speed up example run-time
+success_probabilities_med
+#&gt; $linear
+#&gt; Bayesian Multiple Comparison Procedure
+#&gt;   Estimated Success Rate: 0.71 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.61  0.27  0.61  0.53  0.43 
+#&gt; MED Assessment
+#&gt;   Selection Method:    avgFit 
+#&gt;   Identification Rate: 0.71 
+#&gt;    Dose Level:  2.5  5.0 10.0 20.0 
+#&gt;    MED Freq:   0.01 0.03 0.22 0.45 
+#&gt;   MED not reached Freq:        0 
+#&gt;   No success in MCP step Freq: 0.29 
+#&gt; 
+#&gt; $emax
+#&gt; Bayesian Multiple Comparison Procedure
+#&gt;   Estimated Success Rate: 0.83 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.27  0.81  0.24  0.44  0.69 
+#&gt; MED Assessment
+#&gt;   Selection Method:    avgFit 
+#&gt;   Identification Rate: 0.83 
+#&gt;    Dose Level:  2.5  5.0 10.0 20.0 
+#&gt;    MED Freq:   0.48 0.11 0.13 0.11 
+#&gt;   MED not reached Freq:        0 
+#&gt;   No success in MCP step Freq: 0.17 
+#&gt; 
+#&gt; $exponential
+#&gt; Bayesian Multiple Comparison Procedure
+#&gt;   Estimated Success Rate: 0.71 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.61  0.20  0.63  0.52  0.39 
+#&gt; MED Assessment
+#&gt;   Selection Method:    avgFit 
+#&gt;   Identification Rate: 0.71 
+#&gt;    Dose Level:  2.5  5.0 10.0 20.0 
+#&gt;    MED Freq:   0.00 0.04 0.20 0.47 
+#&gt;   MED not reached Freq:        0 
+#&gt;   No success in MCP step Freq: 0.29 
+#&gt; 
+#&gt; $sigEmax1
+#&gt; Bayesian Multiple Comparison Procedure
+#&gt;   Estimated Success Rate: 0.87 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.64  0.52  0.61  0.84  0.79 
+#&gt; MED Assessment
+#&gt;   Selection Method:    avgFit 
+#&gt;   Identification Rate: 0.84 
+#&gt;    Dose Level:  2.5  5.0 10.0 20.0 
+#&gt;    MED Freq:   0.04 0.16 0.44 0.20 
+#&gt;   MED not reached Freq:        0.03 
+#&gt;   No success in MCP step Freq: 0.13 
+#&gt; 
+#&gt; $sigEmax2
+#&gt; Bayesian Multiple Comparison Procedure
+#&gt;   Estimated Success Rate: 0.85 
+#&gt;   N Simulations:          100 
+#&gt;    Model Shape:         lin  emax   exp sigE1 sigE2 
+#&gt;    Significance Freq:  0.45  0.71  0.42  0.70  0.79 
+#&gt; MED Assessment
+#&gt;   Selection Method:    avgFit 
+#&gt;   Identification Rate: 0.85 
+#&gt;    Dose Level:  2.5  5.0 10.0 20.0 
+#&gt;    MED Freq:   0.19 0.23 0.26 0.17 
+#&gt;   MED not reached Freq:        0 
+#&gt;   No success in MCP step Freq: 0.15 
+#&gt; 
+#&gt; attr(,&quot;avgSuccessRate&quot;)
+#&gt; [1] 0.794
+#&gt; attr(,&quot;placEff&quot;)
+#&gt; [1] -12.8
+#&gt; attr(,&quot;maxEff&quot;)
+#&gt; [1] -3
 #&gt; attr(,&quot;sampleSize&quot;)
 #&gt; [1] 60 80 80 80 80
 #&gt; attr(,&quot;priorESS&quot;)

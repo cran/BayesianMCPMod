@@ -1,4 +1,4 @@
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 library(BayesianMCPMod)
 library(DoseFinding)
 library(MCPModPack)
@@ -16,7 +16,7 @@ library(doFuture)
 load_path <- file.path(getwd(), "data", "simulation_comparison")
 
 
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 doses_sim     <- c(0, 1, 2, 4, 8) 
 n_sample      <- c(40, 40, 40, 40, 40)
 sd_sim        <- 0.4
@@ -26,7 +26,7 @@ plc_eff_guess <- 0
 
 alpha         <- 0.05
 
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 set.seed(7015)
 n_sim <- 10000
 
@@ -38,7 +38,7 @@ registerDoFuture()
 n_sim <- 10
 
 
-## ----fig.height=5-------------------------------------------------------------
+## ----fig.height=5, collapse=TRUE----------------------------------------------
 emax_guess     <- guesst(d = doses_sim[2], p = 0.6, "emax") 
 exp_guess      <- guesst(d = doses_sim[2], p = 0.05, model = "exponential", Maxd = max_dose)
 logit_guess    <- guesst(d = c(doses_sim[2], doses_sim[3]), p = c(0.1, 0.9), "logistic", Maxd = max_dose) 
@@ -54,10 +54,10 @@ plot(Mods(linear      = NULL,
           direction   = "increasing"),
      main = "Candidate Models")
 
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 exp_eff <- c(0.0001, 0.05, 0.1, 0.2, 0.3, 0.5)
 
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 # Simulation parameters
 sim_parameters <- list(n            = n_sample,
                        doses        = doses_sim,
@@ -99,7 +99,7 @@ powers_MCPModPack_eff <- foreach(
 # Post-processing result for printing
 colnames(powers_MCPModPack_eff) <- names(models_MCPModPack)
 results_MCPModPack_eff <- cbind(max_eff = round(exp_eff, digits = 2),
-                            powers_MCPModPack_eff) %>%
+                                powers_MCPModPack_eff) %>%
   data.frame() %>%
   rename(sigEmax = sigemax) %>%
   mutate(average = rowMeans(select(., linear:sigEmax)))
@@ -109,7 +109,7 @@ results_MCPModPack_eff <- cbind(max_eff = round(exp_eff, digits = 2),
 results_MCPModPack_eff <- readRDS(file.path(load_path, "results_MCPModPack_eff.rds"))
 
 
-## -----------------------------------------------------------------------------
+## ----collapse=TRUE------------------------------------------------------------
 # Vague prior specification
 prior_list_vague <- rep(list(RBesT::mixnorm(comp1 = c(w = 1, m = 0, n = 1),
                                             sigma = sd_sim, param = "mn")),
@@ -167,9 +167,9 @@ results_BayesianMCPMod_eff <- readRDS(file.path(load_path, "results_BayesianMCPM
 ## ----fig.height=5-------------------------------------------------------------
 ## pre-processing the data
 df_plot_eff <- rbind(results_MCPModPack_eff %>% 
-                   mutate(package_name = "MCPModPack"),
-                 results_BayesianMCPMod_eff %>% 
-                   mutate(package_name = "BayesianMCPMod")) %>%
+                     mutate(package_name = "MCPModPack"),
+                     results_BayesianMCPMod_eff %>% 
+                     mutate(package_name = "BayesianMCPMod")) %>%
   pivot_longer(cols      = names(results_BayesianMCPMod_eff)[-1],
                names_to  = "model_shape",
                values_to = "success_rate") %>%

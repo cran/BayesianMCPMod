@@ -4,14 +4,16 @@
 \alias{getModelFits}
 \title{getModelFits}
 \usage{
-getModelFits(models, dose_levels, posterior, simple = FALSE)
+getModelFits(models, dose_levels, posterior, avg_fit = TRUE, simple = FALSE)
 }
 \arguments{
-\item{models}{List of model names for which a fit will be performed.}
+\item{models}{List (or vector) of model names for which a fit will be performed.}
 
 \item{dose_levels}{A vector containing the different dosage levels.}
 
 \item{posterior}{A getPosterior object, containing the (multivariate) posterior distribution per dosage level.}
+
+\item{avg_fit}{Boolean variable, defining whether an average fit (based on generalized AIC weights) should be performed in addition to the individual models. Default TRUE.}
 
 \item{simple}{Boolean variable, defining whether simplified fit will be applied. Default FALSE.}
 }
@@ -24,7 +26,7 @@ For the simplified fit, multivariate normal distributions will be approximated a
 For the default case, the Nelder-Mead algorithm is used.
 In detail, for both approaches the mean vector \eqn{\theta^{Y}} and the covariance \eqn{\Sigma} of the (mixture) posterior distributions and the corresponding posterior weights \eqn{\tilde{\omega}_{l}} for \eqn{l \in {1,...,L}} are used as basis
 For the full fit a GLS estimator is used to minimize the following expression for the respective dose-response models \eqn{m}
-\deqn{ \hat{\theta}_{m}=argmin_{\theta_{m}} \sum_{l=1}^{L} \tilde{\omega}_{l}(\theta_{l_{i}}^{Y}-f(dose_{i},\hat{\theta}_{m}))'\Sigma_{l}^{-1}(\theta_{l_{i}}^{Y}-f(dose_{i},\hat{\theta}_{m}))}
+\deqn{ \hat{\theta}_{m}=\text{arg min}_{\theta_{m}} \sum_{l=1}^{L} \tilde{\omega}_{l}(\theta_{l_{i}}^{Y}-f(dose_{i},\hat{\theta}_{m}))'\Sigma_{l}^{-1}(\theta_{l_{i}}^{Y}-f(dose_{i},\hat{\theta}_{m}))}
 Therefore the function nloptr of the nloptr package is utilized.
 In the simplified case \eqn{L=1}, as the dimension of the posterior is reduced to 1 first.
 The generalized AIC values are calculated via the formula
@@ -49,10 +51,15 @@ dose_levels    <- c(0, 1, 2, 4, 8)
 fit        <- getModelFits(models      = models,
                            posterior   = posterior_list,
                            dose_levels = dose_levels)
+                           
+fit
+                           
 fit_simple <- getModelFits(models      = models,
                            posterior   = posterior_list,
                            dose_levels = dose_levels,
                            simple      = TRUE)
+                           
+fit_simple
 
 }
 \references{

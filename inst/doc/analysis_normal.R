@@ -1,4 +1,4 @@
-## -----------------------------------------------------------------------------
+## ----setup, collapse=TRUE-----------------------------------------------------
 library(BayesianMCPMod)
 library(RBesT)
 library(clinDR)
@@ -69,6 +69,9 @@ display_params_table <- function(named_list) {
     )
   }
 }
+
+## ----eval = FALSE-------------------------------------------------------------
+# future::plan(future::multisession)
 
 ## ----Historical Data for Control Arm------------------------------------------
 data("metaData")
@@ -170,7 +173,7 @@ logistic_guesst <- DoseFinding::guesst(
 )
 
 ## -----------------------------------------------------------------------------
-betaMod_params <- c(delta1 = 1, delta2 = 1)
+betaMod_params   <- c(delta1 = 1, delta2 = 1)
 quadratic_params <- c(delta2 = -0.1)
 
 ## -----------------------------------------------------------------------------
@@ -203,9 +206,9 @@ data("metaData")
 
 trial_data <- dplyr::filter(
   dplyr::filter(tibble::tibble(metaData), bname == "BRINTELLIX"),
-  primtime == 8,
+  primtime   == 8,
   indication == "MAJOR DEPRESSIVE DISORDER",
-  protid == 5
+  protid     == 5
 )
 
 n_patients <- c(128, 124, 129, 122)
@@ -213,9 +216,9 @@ n_patients <- c(128, 124, 129, 122)
 ## -----------------------------------------------------------------------------
 posterior <- getPosterior(
   prior_list = prior_list,
-  mu_hat = trial_data$rslt,
-  S_hat = trial_data$se,
-  calc_ess = TRUE
+  mu_hat     = trial_data$rslt,
+  S_hat      = trial_data$se,
+  calc_ess   = TRUE
 )
 
 knitr::kable(summary(posterior))
@@ -265,45 +268,51 @@ BMCP_result
 ## -----------------------------------------------------------------------------
 # If simple = TRUE, uses approx posterior
 # Here we use complete posterior distribution
-fit <- getModelFits(
+model_fits <- getModelFits(
   models      = mods,
   dose_levels = dose_levels,
   posterior   = posterior,
   simple      = FALSE)
 
 ## -----------------------------------------------------------------------------
-display_params_table(stats::predict(fit, doses = c(0, 2.5, 4, 5, 7, 10)))
+display_params_table(stats::predict(model_fits, doses = c(0, 2.5, 4, 5, 7, 10)))
 
 ## -----------------------------------------------------------------------------
-plot(fit)
+plot(model_fits)
 
 ## -----------------------------------------------------------------------------
-plot(fit, cr_bands = TRUE)
+plot(model_fits, cr_bands = TRUE)
 
 ## -----------------------------------------------------------------------------
 bootstrap_quantiles <- getBootstrapQuantiles(
-  model_fits = fit,
+  model_fits = model_fits,
   quantiles  = c(0.025, 0.5, 0.975),
   doses      = c(0, 2.5, 4, 5, 7, 10),
-  n_samples  = 6
+  n_samples  = 10)
+
+## ----collapse = TRUE----------------------------------------------------------
+reactable::reactable(
+  data = bootstrap_quantiles |>
+      tidyr::pivot_wider(names_from = q_probs, values_from = q_values),
+  groupBy = "models",
+  columns = list(
+    doses   = colDef(aggregate = "count", format = list(aggregated = colFormat(suffix = " doses"))),
+    "0.025"  = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
+    "0.5"   = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
+    "0.975" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4)))
+  )
 )
 
 ## -----------------------------------------------------------------------------
-reactable::reactable(
-  data = bootstrap_quantiles,
-  groupBy = "models",
-  columns = list(
-    doses = colDef(aggregate = "count", format = list(aggregated = colFormat(suffix = " doses"))),
-    "2.5%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
-    "50%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4))),
-    "97.5%" = colDef(aggregate = "mean", format = list(aggregated = colFormat(prefix = "mean = ", digits = 2), cell = colFormat(digits = 4)))
-  )
-)
+getMED(delta       = 4,
+       model_fits  = model_fits,
+       dose_levels = seq(min(dose_levels), max(dose_levels), by = 0.01))
 
 ## -----------------------------------------------------------------------------
 # performBayesianMCPMod(
 #   posterior_list   = posterior,
 #   contr            = contr_mat,
 #   crit_prob_adj    = crit_pval,
+#   delta            = 4,
 #   simple           = FALSE)
 

@@ -1,7 +1,7 @@
 Package: BayesianMCPMod
 Title: Simulate, Evaluate, and Analyze Dose Finding Trials with
         Bayesian MCPMod
-Version: 1.0.2
+Version: 1.1.0
 Authors@R: c(
     person("Boehringer Ingelheim Pharma GmbH & Co. KG", role = c("cph", "fnd")),
     person("Stephan", "Wojciekowski", , "stephan.wojciekowski@boehringer-ingelheim.com", role = c("aut", "cre")),
@@ -30,18 +30,18 @@ URL: https://boehringer-ingelheim.github.io/BayesianMCPMod/,
         https://github.com/Boehringer-Ingelheim/BayesianMCPMod
 BugReports: https://github.com/Boehringer-Ingelheim/BayesianMCPMod/issues
 Depends: R (>= 4.2)
-Imports: checkmate, DoseFinding (>= 1.1-1), ggplot2, methods, nloptr,
-        RBesT, stats
-Suggests: clinDR, data.table, doFuture, doRNG, dplyr, kableExtra,
-        knitr, MCPModPack, reactable, rmarkdown, spelling, testthat (>=
-        3.0.0), tibble, tidyr
+Imports: checkmate, DoseFinding (>= 1.1-1), future.apply, ggplot2,
+        methods, nloptr, RBesT, stats
+Suggests: clinDR, data.table, doFuture, doRNG, dplyr, future,
+        kableExtra, knitr, MCPModPack, reactable, rmarkdown, spelling,
+        testthat (>= 3.0.0), tibble, tidyr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 RoxygenNote: 7.3.2
 NeedsCompilation: no
-Packaged: 2025-02-06 15:38:04 UTC; wojcie
+Packaged: 2025-03-07 18:32:49 UTC; wojcie
 Author: Boehringer Ingelheim Pharma GmbH & Co. KG [cph, fnd],
   Stephan Wojciekowski [aut, cre],
   Lars Andersen [aut],
@@ -49,4 +49,4 @@ Author: Boehringer Ingelheim Pharma GmbH & Co. KG [cph, fnd],
   Sebastian Bossert [aut]
 Maintainer: Stephan Wojciekowski <stephan.wojciekowski@boehringer-ingelheim.com>
 Repository: CRAN
-Date/Publication: 2025-02-06 16:10:06 UTC
+Date/Publication: 2025-03-07 19:00:07 UTC
